@@ -11,7 +11,7 @@ const pool = new Pool({
   database: process.env.DB_DATABASE
 });
 
-async function quary(quaryStr, params = []){
+async function query(quaryStr, params = []){
   const client = await pool.connect()
   try {
     const { rows } = await client.query(quaryStr, params.length ? params : null);
@@ -23,4 +23,4 @@ async function quary(quaryStr, params = []){
   }
 }
 
-module.exports = quary;
+module.exports = query;

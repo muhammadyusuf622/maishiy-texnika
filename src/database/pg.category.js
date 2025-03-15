@@ -17,7 +17,7 @@ async function queryForCategory(queryStr, params = []){
     const { rows } = await client.query(queryStr, params.length ? params : []);
     return rows
   } catch (error) {
-    console.error("queryForCategory-da xatolik");
+    console.error("queryForCategory-da xatolik",error.message);
   } finally {
     client.release();
   }

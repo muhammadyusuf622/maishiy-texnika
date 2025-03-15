@@ -46,6 +46,33 @@ class DbCategory{
       console.error("deleteById-da", error.message);
     }
   }
+
+
+  static async updateCategory(id, name){
+    try {
+      const check = await queryForCategory(`SELECT EXISTS(SELECT 1 FROM category WHERE id = $1);`, [ id ] );
+      if(!check[0].exists){
+        return false
+      }
+      const category = await queryForCategory(`UPDATE category SET name = $1 WHERE id = $2 RETURNING *;`, [name, id]);
+      return category
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
+
+  static async addUser(name){
+    try {
+      const check = await queryForCategory(`SELECT EXISTS(SELECT 1 FROM category WHERE name = $1);`, [ name.toLowerCase() ] );
+      if(check[0].exists){
+        return false
+      }
+      const data = await queryForCategory(`INSERT INTO category (name) VALUES ($1) RETURNING *;`,[name.toLowerCase()]);
+      return data
+    } catch (error) {
+      console.error(error.message)
+    }
+  }
 }
 
 module.exports = { DbCategory };
