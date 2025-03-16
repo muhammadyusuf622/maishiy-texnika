@@ -1,7 +1,9 @@
+const ErrorHandler = require("../utils/ErrorHandler");
 const { DbCategory } = require("../model/category.model");
 
 
-exports.getAllCategory = async function (req,res){
+
+exports.getAllCategory = async function (req,res, next){
   try {
      
     const data = await DbCategory.getAllcategoryFn()
@@ -12,29 +14,22 @@ exports.getAllCategory = async function (req,res){
       data: data
     });
   } catch (error) {
-    console.error("getAllcategory-da xatolik",error.message);
-    res.status(500).send()
+    next(error)
   }
 }
 
-exports.getByIdCategory = async function (req,res){
-  const id = req.params.id;
+exports.getByIdCategory = async function (req,res, next){
+  const id = Number(req.params.id);
 
-  if(!Number(id)){
-    return res.status(400).send({
-     status:"error",
-     message:"ID Xato kiritilgan"
-    });
+  if(isNaN(id)){
+    throw new ErrorHandler(400, `ID ${req.params.id} Wrong Format`)
   }
   
   try {
     const data = await DbCategory.getByIdCategory(id)
 
     if(!data){
-      return res.status(404).send({
-        status:"error",
-        message:`Bunday ID ${id} mavjud emas`
-      });
+      throw new ErrorHandler(404, `Bunday ID ${id} Not Found`)
     }
     
     res.status(200).send({
@@ -43,27 +38,21 @@ exports.getByIdCategory = async function (req,res){
       data: data
     });
   } catch (error) {
-    console.error(message.error)
+    next(error)
   }
 }
 
-exports.deleteById = async function (req,res){
-  const id = req.params.id;
+exports.deleteById = async function (req,res, next){
+  const id = Number(req.params.id);
 
-  if(!Number(id)){
-    return res.status(400).send({
-     status:"error",
-     message:"ID Xato kiritilgan"
-    });
+  if(isNaN(id)){
+    throw new ErrorHandler(400, `ID ${req.params.id} Wrong Format`)
   }
   try {
     const data = await DbCategory.deleteById(id);
 
     if(!data){
-      return res.status(404).send({
-        status:"error",
-        message:`Bunday ID ${id} mavjud emas`
-      });
+      throw new ErrorHandler(404, `ID ${id} Not Found`)
     }
     res.status(200).send({
       status:"success",
@@ -71,27 +60,20 @@ exports.deleteById = async function (req,res){
       data: data
     });
   } catch (error) {
-    console.error(message.error)
+    next(error)
   }
 }
 
-exports.updateCategory = async function (req,res){
-  const id = req.params.id;
-  const { name } = req.body;
-  if(!(Number(id) && name)){
-    return res.status(400).send({
-     status:"error",
-     message:"ID or Name Error"
-    });
-  };
-
+exports.updateCategory = async function (req,res, next){
   try {
+    const id = Number(req.params.id);
+    const { name } = req.body;
+    if(isNaN(id) && !name && id > 0){
+      throw new ErrorHandler(400, `ID ${req.params.id} OR Name Error`);
+    };
     const data = await DbCategory.updateCategory(id, name);
     if(!data){
-      return res.status(404).send({
-        status:"error",
-        message:`Bunday ID ${id} mavjud emas`
-      });
+      throw new ErrorHandler(404, `ID ${id} Not Found`)
     }
     res.status(200).send({
       status:"success",
@@ -100,27 +82,20 @@ exports.updateCategory = async function (req,res){
     });
     
   } catch (error) {
-    console.error(error.message)
+    next(error)
   }
 }
 
-exports.addUser = async function (req,res){
-
-  const {name} = req.body;
-  if(!name){
-    return res.status(404).send({
-      status:"error",
-      message:`name kiritilmagan`
-    });
-  }
+exports.addUser = async function (req,res, next){
   try {
+    const {name} = req.body;
+    if(!name){
+      throw new ErrorHandler(404, `Name is not entered`)
+    }
     const data = await DbCategory.addUser(name)
 
     if(!data){
-      return res.status(404).send({
-        status:"error",
-        message:`Bunday Name allaqachon mavjud`
-      });
+      throw new ErrorHandler(404, "Such Name already exists")
     }
 
     res.status(200).send({
@@ -129,6 +104,6 @@ exports.addUser = async function (req,res){
       data: data
     });
   } catch (error) {
-    console.error(error.message);
+    next(error)
   }
 }

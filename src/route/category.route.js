@@ -3,15 +3,15 @@ const { getAllCategory, getByIdCategory, deleteById, updateCategory, addUser } =
 
 const categoryRoute = Router()
 
-categoryRoute.get("/Category", getAllCategory);
+categoryRoute.get("/", getAllCategory);
 
-categoryRoute.get("/Category/:id", getByIdCategory);
+categoryRoute.get("/:id", getByIdCategory);
 
-categoryRoute.put("/Category/:id", updateCategory);
+categoryRoute.put("/:id", updateCategory);
 
-categoryRoute.post("/Category", addUser);
+categoryRoute.post("/", addUser);
 
-categoryRoute.delete("/Category/:id", deleteById);
+categoryRoute.delete("/:id", deleteById);
 
 
 

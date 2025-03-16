@@ -1,9 +1,9 @@
-const exp = require("constants");
+const errorMiddleware = require("./middleware/errorMiddleware");
 const { config } = require("dotenv");
 const express = require("express");
-const productRoute = require("./src/route/product.route");
+const productRoute = require("./route/product.route");
 const {join} = require("node:path");
-const categoryRoute = require("./src/route/category.route");
+const categoryRoute = require("./route/category.route");
 
 config()
 
@@ -15,8 +15,8 @@ app.use(express.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 app.set("views", join(process.cwd(), "src", "views"));
 
-app.use("/api/v1", productRoute);
-app.use("/api/v1", categoryRoute);
+app.use("/api/v1/products", productRoute);
+app.use("/api/v1/categories", categoryRoute);
 
 app.use((req,res) => {
   res.status(404).send({
@@ -25,6 +25,9 @@ app.use((req,res) => {
   });
 });
 
-app.listen(+process.env.APP_PORT, () => {
-  console.log(`localhost:${+process.env.APP_PORT}`)
+app.use(errorMiddleware);
+
+const PORT = parseInt(process.env.APP_PORT, 10) || 5000;
+app.listen(PORT, () => {
+  console.log(`localhost:${PORT}`)
 })

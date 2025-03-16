@@ -1,7 +1,8 @@
-const quary = require("../database/pg");
 const ProductFn = require("../model/product.model");
+const ErrorHandler = require("../utils/ErrorHandler");
 
-exports.getAllProducts = async function (req,res){
+
+exports.getAllProducts = async function (req,res, next){
   try {
     
     const data = await ProductFn.getAllProduct()
@@ -11,26 +12,20 @@ exports.getAllProducts = async function (req,res){
       data:data
     });
   } catch (error) {
-    console.error(error.message)
+    next(error);
   }
 }
 
-exports.getProductById = async function (req,res){
+exports.getProductById = async function (req,res, next){
   try {
-    const id = req.params.id;
-    if (isNaN(id)) {
-      return res.status(400).send({
-        status: "error",
-        message: `ID ${id} noto'g'ri formatda!`
-      });
+    const id = Number(req.params.id);
+    if (isNaN(id) || id < 0) {
+      throw new ErrorHandler(400, `ID ${req.params.id} wrong format!`);
     };
 
     const data = await ProductFn.getByIdProduct(id)
     if(!data){
-      return res.status(404).send({
-        status:"error",
-        message:`Id ${id} Not Found`
-      });
+      throw new ErrorHandler(404, `ID ${id} Not Found`)
     }
     res.status(200).send({
       status:"success",
@@ -38,27 +33,21 @@ exports.getProductById = async function (req,res){
       data: data
     });
   } catch (error) {
-    console.error(message.error)
+    next(error);
   }
 }
 
-exports.createProduct = async function (req, res) {
+exports.createProduct = async function (req, res, next) {
   try {
     const { name, price, count, category_id, description } = req.body;
     if (!name || !price || !count || !category_id || !description){
-      res.status(404).send({
-        status: "error",
-        message:"name, price, count, category_id, description to'liq kiritilsin"
-      });
+      throw new ErrorHandler(400, `name, price, count, category_id, description to'liq kiritilsin`);
     }
 
     const data = await ProductFn.addProduct({name,price,count,category_id,description});
 
     if(!data){
-      return res.status(400).send({
-        status:"error",
-        message:`Bunday category_id ${category_id} user topilmadi`
-      });
+      throw new ErrorHandler(404, `Bunday category_id ${category_id} user topilmadi`)
     }
     res.status(200).send({
       status:"success",
@@ -66,29 +55,59 @@ exports.createProduct = async function (req, res) {
       data: data
     });
   } catch (error) {
-    console.error("Error creating product:", error.message);
-    res.status(500).send({ error: "Internal Server Error" }); // Foydalanuvchiga javob qaytarish
+    next(error);
   }
 };
 
 
-
-
-
-exports.deleteById = async function (req, res) {
+exports.deleteById = async function (req, res, next) {
   try {
     const id = req.params.id;
+    if (isNaN(id)) {
+      throw new ErrorHandler(400, `ID ${id} wrong format!`)
+    };
 
-    const result = await quary(`DELETE FROM product WHERE id = $1 RETURNING *;`,[id]);
+    const data = await ProductFn.delProductById(id);
 
-    if (!result.length) {
-      return res.status(404).send({ message: "Product not found" });
-    }
+    if(!data){
+      throw new ErrorHandler(404, `ID ${id} Not Found`)
+    };
 
-    res.status(200).send({ message: "Product deleted successfully" });
+    res.status(200).send({
+      status:"success",
+      message:"The information was successfully deleted",
+      data:data
+    });
   } catch (error) {
-    console.error("Error deleting product:", error.message);
-    res.status(500).send({ error: "Internal Server Error" });
+    next(error);
   }
 };
+
+
+exports.updateProduct = async function (req,res, next){
+  try {
+    const id = req.params.id;
+    if (isNaN(id)) {
+      throw new ErrorHandler(400, `ID ${id} wrong format!`)
+    };
+    const { name, price, count, description } = req.body;
+    if (!name || !price || !count || !description){
+      throw new ErrorHandler(404, "name, price, count, category_id, description to'liq kiritilsin")
+    };
+
+    const data = await ProductFn.updateProduct({id, name, price, count, description});
+    
+    if(!data){
+      throw new ErrorHandler(404, `ID ${id} Not Found`)
+    };
+    res.status(200).send({
+      status:"success",
+      message:"The information was successfully updated",
+      data:data
+    });
+  
+  } catch (error) {
+    next(error);
+  }
+}
 
